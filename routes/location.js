@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const apiKey = process.env.LOCATION_API_KEY;
+// const apiKey = 'e4a92273b563419fa39f405d84705114';
 
 const router = express.Router();
 /**
@@ -14,15 +15,31 @@ const router = express.Router();
  *         in: query
  *         required: true
  *         type: string
+ *       - name: lat
+ *         description: Latitude for proximity search
+ *         in: query
+ *         required: false
+ *         type: number
+ *       - name: lon
+ *         description: Longitude for proximity search
+ *         in: query
+ *         required: false
+ *         type: number
  *     responses:
  *       200:
  *         description: A list of locations based on the text input
  *       500:
  *         description: Internal server error
  */
+
 router.get('/query/:query', async (req, res) => {
-  const { text } = req.query;
-  const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${text}&filter=countrycode:us&type=city&limit=5&apiKey=${apiKey}`;
+  const { text, lat, lon } = req.query;
+  let url = "";
+  if(lat && lon){
+     url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${text}&bias=proximity:${lon},${lat}&type=locality&&filter=countrycode:us,ca&apiKey=${apiKey}`;
+  } else {
+     url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${text}&limit=5&type=locality&filter=countrycode:us,ca&&apiKey=${apiKey}`;
+  }
 
   try {
     const response = await axios.get(url);
